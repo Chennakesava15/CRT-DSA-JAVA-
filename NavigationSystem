@@ -1,0 +1,84 @@
+import java.awt.Desktop;
+import java.net.URI;
+import java.util.Scanner;
+import java.util.Stack;
+
+public class NavigationSystem {
+    private Stack<String> backStack = new Stack<>();
+    private Stack<String> forwardStack = new Stack<>();
+    private String currentPage = "https://www.google.com";
+
+    public void visit(String page) {
+        if (!currentPage.equals("")) {
+            backStack.push(currentPage);
+        }
+        currentPage = page;
+        forwardStack.clear();
+        displayCurrentPage();
+        try {
+            Desktop desktop = Desktop.getDesktop();
+            desktop.browse(new URI(page));
+        } catch (Exception e) {
+            System.out.println("Failed to open the page: " + e.getMessage());
+        }
+    }
+    public void goBack() {
+        if (!backStack.isEmpty()) {
+            forwardStack.push(currentPage);
+            currentPage = backStack.pop();
+            displayCurrentPage();
+            try {
+                Desktop.getDesktop().browse(new URI(currentPage));
+            } catch (Exception e) {
+                System.out.println("Failed to open the page: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No previous page.");
+        }
+    }
+    public void goForward() {
+        if (!forwardStack.isEmpty()) {
+            backStack.push(currentPage);
+            currentPage = forwardStack.pop();
+            displayCurrentPage();
+            try {
+                Desktop.getDesktop().browse(new URI(currentPage));
+            } catch (Exception e) {
+                System.out.println("Failed to open the page: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No next page.");
+        }
+    }
+    public void displayCurrentPage() {
+        System.out.println("Current Page: " + currentPage);
+    }
+    public static void main(String[] args) {
+        NavigationSystem nav = new NavigationSystem();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Commands: visit [url], back, forward, exit");
+        nav.visit(nav.currentPage);
+
+        while (true) {
+            System.out.print("> ");
+            String input = scanner.nextLine().trim();
+
+            if (input.equalsIgnoreCase("exit")) {
+                break;
+            } else if (input.startsWith("visit ")) {
+                String page = input.substring(6).trim();
+                if (!page.startsWith("http://") && !page.startsWith("https://")) {
+                    page = "https://" + page;
+                }
+                nav.visit(page);
+            } else if (input.equalsIgnoreCase("back")) {
+                nav.goBack();
+            } else if (input.equalsIgnoreCase("forward")) {
+                nav.goForward();
+            } else {
+                System.out.println("Invalid command.");
+            }
+        }
+        scanner.close();
+    }
+}
