@@ -1,0 +1,36 @@
+class Solution {
+    public int networkDelayTime(int[][] times, int n, int k) {
+        Map<Integer, List<int[]>> graph = new HashMap<>();
+        for (int[] edge : times) {
+            int u = edge[0], v = edge[1], w = edge[2];
+            graph.computeIfAbsent(u, x -> new ArrayList<>()).add(new int[]{v, w});
+        }
+        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        heap.offer(new int[]{0, k});
+
+        Map<Integer, Integer> dist = new HashMap<>();
+        while (!heap.isEmpty()) {
+            int[] curr = heap.poll();
+            int time = curr[0], node = curr[1];
+
+            if (dist.containsKey(node)) continue;
+            dist.put(node, time);
+
+            if (!graph.containsKey(node)) continue;
+
+            for (int[] neighbor : graph.get(node)) {
+                int nei = neighbor[0], w = neighbor[1];
+                if (!dist.containsKey(nei)) {
+                    heap.offer(new int[]{time + w, nei});
+                }
+            }
+        }
+        if (dist.size() != n) return -1;
+        int maxTime = 0;
+        for (int time : dist.values()) {
+            maxTime = Math.max(maxTime, time);
+        }
+
+        return maxTime;
+    }
+}
